@@ -174,7 +174,7 @@ class Program:
                         #print(str(res))
                         file_data.append(res)
                 
-                # get height and height
+                # get height and width value
                 height = len(file_data)
                 if height < 1:
                     raise not_enough_data
