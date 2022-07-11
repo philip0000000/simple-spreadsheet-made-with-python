@@ -123,7 +123,7 @@ class Program:
             self.filename = "Untitled"
             self.file_changed = False
             self.root.title("spreadsheet: " + self.filename)
-        except: #Exception as e:
+        except Exception as e:
             messagebox.showwarning("error", "X and/or Y data was wrong")
             #print(e)
     def cancel_new_spreadsheet(self):
@@ -321,14 +321,14 @@ class Program:
         file_changed = True
         self.root.title("spreadsheet: " + self.filename + "*")
 
+class not_enough_data(Exception):
+    """Could not find enougth data"""
+    pass
+
 def main():
     root = tk.Tk()
     Program(root)
     root.mainloop()
-    
-class not_enough_data(Exception):
-    """Could not find enougth data"""
-    pass
- 
+
 if __name__ == '__main__':
     main()
