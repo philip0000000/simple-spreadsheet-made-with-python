@@ -8,7 +8,8 @@ from tkinter import filedialog
 from tkinter import messagebox
 import re
 
-class Program:
+class spreadsheet_program:
+    """simple spreadsheet program"""
     filename = "Untitled"
     file_changed = False
     # cells and data of spreadsheet
@@ -125,7 +126,6 @@ class Program:
             self.root.title("spreadsheet: " + self.filename)
         except Exception as e:
             messagebox.showwarning("error", "X and/or Y data was wrong")
-            #print(e)
     def cancel_new_spreadsheet(self):
         self.child_window_new.destroy()
         self.child_window_new.update()
@@ -171,20 +171,19 @@ class Program:
                     for line in f:
                         # Extract substrings between square brackets, using regex
                         res = re.findall(r'\[.*?\]', line)
-                        #print(str(res))
                         file_data.append(res)
                 
                 # get height and width value
                 height = len(file_data)
                 if height < 1:
-                    raise not_enough_data
+                    raise not_enough_data_error
                 width = 0
                 # loop throught every list to get biggest value
                 for n in file_data:
                     if len(n) > width:
                         width = len(n)
                 if width < 1:
-                    raise not_enough_data
+                    raise not_enough_data_error
                     
                 # create spreadsheet
                 self.create_spreadsheet(width, height)
@@ -194,9 +193,11 @@ class Program:
                 while i < height:
                     j = 0
                     while j < width:
-                        if len(file_data[i][j]) > 2:
-                            self.sv[j][i].set((file_data[i][j])[1:-1])
-                            #print(file_data[i][j])
+                        # check if 2D index exist before adding to spreadsheet
+                        jj = len(file_data[i])
+                        if j < jj:
+                            if len(file_data[i][j]) > 2:
+                                self.sv[j][i].set((file_data[i][j])[1:-1])
                         j += 1
                     i += 1
                 
@@ -206,7 +207,7 @@ class Program:
                 self.root.title("spreadsheet: " + self.filename)
             except IOError:
                 tk.tkMessageBox.showwarning("Open file","Cannot open this file...")
-            except not_enough_data:
+            except not_enough_data_error:
                 messagebox.showwarning("error", "not enough data in file")
                 # set title
                 self.filename = "Untitled"
@@ -218,8 +219,6 @@ class Program:
         else:
             column_length = len(self.sv[0])
             row_length = len(self.sv)
-            #print("column_length: " + str(column_length))
-            #print("row_length: " + str(row_length))
             
             # open file
             f = open(self.filename, "wb")
@@ -252,8 +251,6 @@ class Program:
         if len(filename) > 0:
             column_length = len(self.sv[0])
             row_length = len(self.sv)
-            #print("column_length: " + str(column_length))
-            #print("row_length: " + str(row_length))
             
             # open file
             f = open(filename, "wb")
@@ -316,18 +313,17 @@ class Program:
     def on_frame_configure(self, event):
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
     def callback(self, column, row):
-        #print("Column: " + str(column) + ", Row: " + str(row) + " = ")
         # set title
         file_changed = True
         self.root.title("spreadsheet: " + self.filename + "*")
 
-class not_enough_data(Exception):
+class not_enough_data_error(Exception):
     """Could not find enougth data"""
     pass
 
 def main():
     root = tk.Tk()
-    Program(root)
+    spreadsheet_program(root)
     root.mainloop()
 
 if __name__ == '__main__':
