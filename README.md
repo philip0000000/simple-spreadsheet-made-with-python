@@ -7,7 +7,7 @@ Program has been successfully tested on Windows 10 and Ubuntu 22.04 LTS with Pyt
 
 ## Information
 
-The program can open and save comma-separated values(CSV) files.
+The program can open and save comma-separated values(CSV) files. <br>
 Sample .csv files can be found here: https://sample-videos.com/download-sample-csv.php
 
 ## License
