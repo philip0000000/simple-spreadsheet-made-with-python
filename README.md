@@ -12,6 +12,6 @@ Sample .csv files can be found here: https://sample-videos.com/download-sample-c
 
 ## License
 
-License under MIT license 
+Licensed under the MIT license.
 
 ![simple-spreadsheet-made-with-python](spreadsheet.png "example")
