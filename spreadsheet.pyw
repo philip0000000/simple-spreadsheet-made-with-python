@@ -3,6 +3,8 @@
 # Written by philip0000000
 # Find the project here [https://github.com/philip0000000/simple-spreadsheet-made-with-python]
 #
+import csv
+import re
 import tkinter as tk
 from tkinter import filedialog
 from tkinter import messagebox
@@ -18,12 +20,14 @@ class spreadsheet_program:
         self.root = root
         self.root.title("spreadsheet: " + self.filename)
         root.geometry("650x490")
+        self.data_delimiter = ","
         
         # add a menu bar
         menu_bar = tk.Menu(root)
         file_menu = tk.Menu(menu_bar, tearoff=0)
         file_menu.add_command(label="New", command=self.new_file)
         file_menu.add_command(label="Open", command=self.open_file)
+        file_menu.add_command(label="Change delimited data format", command=self.create_set_data_delimiter_child_window)
         file_menu.add_command(label="Save", command=self.save_file)
         file_menu.add_command(label="Save as", command=self.save_as_file)
         file_menu.add_command(label="Exit", command=self.exit_program)
@@ -59,7 +63,7 @@ class spreadsheet_program:
     def limit_string_var_to_four(self, var):
         # remove everything except for numbers
         value = var.get()
-        value = re.sub('\D', '', value)
+        value = re.sub('\D', '', value) # regular expressions, all non-digit characters are removed
         var.set(value)
         # max 4 numbers
         value = var.get()
@@ -145,70 +149,10 @@ class spreadsheet_program:
                 
                 # get file data
                 file_data = []
-                with open(filename) as f:
-                    for raw_line_data in f:
-                        line_data = []
-                        # if two double quotation marks follow eachother, make theme only one
-                        processed_line_data = ""
-                        n = 0
-                        raw_line_data_length = len(raw_line_data)
-                        while n < raw_line_data_length:
-                            if n+3 < raw_line_data_length:
-                                if raw_line_data[n] == "," and raw_line_data[n+1] == "\"" and raw_line_data[n+2] == "\"" and raw_line_data[n+3] == ",":
-                                    processed_line_data += ","
-                                    n += 3
-                            # turn all 2 double quotation mark into 1 double quotation mark
-                            if raw_line_data[n] == "\"" and raw_line_data[n+1] == "\"":
-                                # if double quotation mark looks like this: ",\"\","
-                                # do nothing
-                                if n > 0:
-                                    if raw_line_data[n-1] != ",":
-                                        processed_line_data += "\""
-                                        n += 2
-                                    else:
-                                        processed_line_data += raw_line_data[n]
-                                        n += 1
-                                else:
-                                    processed_line_data
-                                    n += 1
-                            else:
-                                processed_line_data += raw_line_data[n]
-                                n += 1
-                        # Extract substrings between comma
-                        cell_data = ""
-                        inside_double_quotation_mark = False
-                        n = 0
-                        processed_line_data_length = len(processed_line_data)
-                        while n < processed_line_data_length:
-                            # if we get ",\"" we set flag and jump 2 step forward
-                            if n+1 < processed_line_data_length and processed_line_data[n] == "," and processed_line_data[n+1] == "\"" and inside_double_quotation_mark == False:
-                                line_data.append(cell_data)
-                                cell_data = ""
-                                inside_double_quotation_mark = True
-                                n += 2
-                            # if we get "\"," we make flag false and jump 3 steps forward
-                            elif n+1 < processed_line_data_length and processed_line_data[n] == "\"" and processed_line_data[n+1] == "," and inside_double_quotation_mark == True:
-                                inside_double_quotation_mark = False
-                                line_data.append(cell_data)
-                                cell_data = ""
-                                n += 2
-                            # if we get comma with no flag, we save cell data and add new cell data
-                            elif processed_line_data[n] == "," and inside_double_quotation_mark == False:
-                                # new cell, save current cell data and start obtaining the new data from the new cell
-                                line_data.append(cell_data)
-                                cell_data = ""
-                                n += 1
-                            else:
-                                # do not add new line escape character
-                                if processed_line_data[n] != "\n":
-                                    cell_data += processed_line_data[n]
-                                n += 1
-                        # if something is left in the cell data, add it
-                        if len(cell_data) > 0:
-                            line_data.append(cell_data)
-                        # add line data to file data
-                        file_data.append(line_data)
-                
+                with open(filename, mode="r", encoding="UTF-8") as csv_data:     # Reading CSV-filen
+                    reader = csv.reader(csv_data, delimiter=self.data_delimiter) # Make each line in the CSV file a list, and return it
+                    file_data = list(reader)                                     # Creates a list with the contents of multiple lists
+
                 # get height and width value
                 height = len(file_data)
                 if height < 1:
@@ -248,6 +192,41 @@ class spreadsheet_program:
                 self.filename = "Untitled"
                 file_changed = False
                 self.root.title("spreadsheet: " + self.filename)
+    def create_set_data_delimiter_child_window(self):
+        # create child window when new spreadsheet is required
+        self.child_window_set_data_delimiter = tk.Toplevel(self.root)
+        self.child_window_set_data_delimiter.title("spreadsheet")               # setting title
+        self.child_window_set_data_delimiter.geometry("185x116")                # setting window size
+        self.child_window_set_data_delimiter.resizable(width=True, height=True)
+        self.child_window_set_data_delimiter.transient(self.root)               # top of the main window
+
+        # Add labels
+        set_data_delimiter_text=tk.Label(self.child_window_set_data_delimiter, text="Set data delimiter")
+        set_data_delimiter_text.place(x=30, y=5, width=90, height=30)
+
+        # Add entry
+        self.sv_data_delimiter = tk.StringVar()
+        self.sv_data_delimiter.set(self.data_delimiter)
+        self.entry_data_delimiter=tk.Entry(self.child_window_set_data_delimiter, text="entry_data_delimiter", textvariable=self.sv_data_delimiter)
+        self.entry_data_delimiter.place(x=30, y=40, width=70, height=30)
+
+        # Add buttons
+        new_button=tk.Button(self.child_window_set_data_delimiter, text="Ok", command=self.set_data_delimiter)
+        new_button.place(x=30, y=80, width=68, height=30)
+        cancel_button=tk.Button(self.child_window_set_data_delimiter, text="Cancel", command=self.cancel_data_delimiter)
+        cancel_button.place(x=108, y=80, width=68, height=30)
+    def set_data_delimiter(self):
+        try:
+            # get new data delimiter
+            self.data_delimiter = self.sv_data_delimiter.get()
+
+            # close this window
+            self.cancel_data_delimiter()
+        except Exception as e:
+            messagebox.showwarning("error", "data delimiter was wrong")
+    def cancel_data_delimiter(self):
+        self.child_window_set_data_delimiter.destroy()
+        self.child_window_set_data_delimiter.update()
     def delete_spreadsheet(self):
         # 1st delete all string var
         for n in reversed(self.sv):
@@ -303,9 +282,9 @@ class spreadsheet_program:
                     # if the data in the cell has comma, surround the data with double quotation marks
                     if "," in raw_cell_data:
                         cell_data = "\"" + cell_data + "\""
-                    # add comma, except for 1st cell
+                    # add data delimiter, except for 1st cell
                     if (j != 0):
-                        cell_data = "," + cell_data
+                        cell_data = self.data_delimiter + cell_data
                     cell_data = cell_data.encode("utf-8")
                     f.write(cell_data)
                     j += 1
